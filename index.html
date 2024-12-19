@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Scraper</title>
+</head>
+<body>
+    <h1>Scraper</h1>
+    <form id="formular">
+        <label>Hledat:</label>
+        <input type="text" id="vlozeni">
+        <button type="submit">Vyhledat</button>
+    </form>
+    <div id="vysledky"></div>
+    <script>
+        document.getElementById("formular").addEventListener("submit", function(event) {
+            event.preventDefault();
+            var fce = document.getElementById("vlozeni").value;
+            fetch('/scrape', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ fce: fce })
+            }).then(function(response) {
+                return response.json();
+            }).then(function(data) {
+                var vysledkyDiv = document.getElementById("vysledky");
+                vysledkyDiv.innerHTML = "";
+                for (var i = 0; i < data.length; i++) {
+                    var stranka = data[i];
+                    var div = document.createElement("div");
+                    div.innerHTML = "<b>" + stranka.title + "</b><br>" + stranka.link + "<br>" + stranka.snippet + "<hr>";
+                    vysledkyDiv.appendChild(div);
+                }
+                var downloadButton = document.createElement("button");
+                downloadButton.innerText = "Stáhnout JSON";
+                downloadButton.onclick = function() {
+                    var blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+                    var url = URL.createObjectURL(blob);
+                    var a = document.createElement("a");
+                    a.href = url;
+                    a.download = "vysledky.json";
+                    a.click();
+                };
+                vysledkyDiv.appendChild(downloadButton);
+            }).catch(function(error) {
+                console.error(error);
+                alert("Chyba při zpracování dotazu.");
+            });
+        });
+    </script>
+</body>
+</html>
